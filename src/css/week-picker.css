@@ -5,14 +5,18 @@
 	border-radius: 4px;
 	box-shadow: 2px 2px 4px #ccc;
 	text-align: center;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 .week-picker > ._middle{
 	position: relative;
 }
 .week-picker ._weekTable {
 	margin: 5px;
+	border: none;
+	border-collapse: collapse;
 }
 .week-picker ._weekTable td {
+	padding: 0;
 	width: 40px;
 	height: 30px;
 	cursor: pointer;
@@ -84,6 +88,7 @@
 	margin: 0 10px;
 	padding: 0 6px;
 	border-radius: 3px;
+	text-decoration: none;
 }
 .week-picker ._popup ._arrow:hover {
 	background-color: #eee;
