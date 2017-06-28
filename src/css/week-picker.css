@@ -1,7 +1,7 @@
-.week-picker * {
+._week-picker * {
 	box-sizing: border-box;
 }
-.week-picker > ._middle > ._popup {
+._week-picker > ._middle > ._popup {
 	position: absolute;
 	top: 0;
 	background: #eee;
@@ -9,17 +9,18 @@
 	box-shadow: 2px 2px 4px #ccc;
 	text-align: center;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	z-index: 99;
 }
-.week-picker > ._middle{
+._week-picker > ._middle{
 	position: relative;
 }
-.week-picker ._weekTable {
+._week-picker ._weekTable {
 	margin: 5px;
 	border: none;
 	border-collapse: collapse;
 	width: auto;
 }
-.week-picker ._weekTable td {
+._week-picker ._weekTable td {
 	padding: 0;
 	width: 40px;
 	height: 30px;
@@ -29,7 +30,7 @@
 	position: relative;
 	border: none;
 }
-.week-picker ._weekTable td a {
+._week-picker ._weekTable td a {
 	width: 100%;
 	height: 100%;
 	border-radius: 0px;
@@ -39,29 +40,29 @@
 	color: #444;
 	display: block;
 }
-.week-picker ._weekTable td a:focus {
+._week-picker ._weekTable td a:focus {
 	background-color: #d6d6d6;
 }
-.week-picker ._weekTable td a:active {
+._week-picker ._weekTable td a:active {
 	background-color: #d6d6d6;
 }
-.week-picker ._weekTable td a:hover {
+._week-picker ._weekTable td a:hover {
 	background: #f4b0b0;
 	border-radius: 5px;
 }
-.week-picker ._weekTable td._active a {
+._week-picker ._weekTable td._active a {
 	background: #f38080;
 	border-radius: 0px;
 }
-.week-picker ._weekTable td._current a {
+._week-picker ._weekTable td._current a {
 	background: #d5d5d5;
 	border-radius: 5px;
 }
-.week-picker ._weekTable td._current._active a {
+._week-picker ._weekTable td._current._active a {
 	border-radius: 0px;
 	background: #de7979;
 }
-/*.week-picker ._weekTable td._current::before {
+/*._week-picker ._weekTable td._current::before {
 	content: "";
 	height: 8px;
 	width: 8px;
@@ -71,23 +72,23 @@
 	position: absolute;
 	background: #db6f6f;
 }*/
-.week-picker > ._middle > ._popup > ._oh {
+._week-picker > ._middle > ._popup > ._oh {
 	width: 100%;
 	background-color: #dddddd;
 	border-radius: 4px 4px 0 0;
 	padding: 5px 0;
 }
-.week-picker > ._middle > ._popup > ._uh {
+._week-picker > ._middle > ._popup > ._uh {
 	width: 100%;
 	background-color: #dddddd;
 	border-radius: 0 0 4px 4px;
 	padding: 5px 0;
 }
-.week-picker > ._middle > ._popup > ._uh > a {
+._week-picker > ._middle > ._popup > ._uh > a {
 	color: #333;
 	font-size: 14px;
 }
-.week-picker ._popup ._arrow {
+._week-picker ._popup ._arrow {
 	display: inline-block;
 	color: black;
 	margin: 0 10px;
@@ -95,15 +96,15 @@
 	border-radius: 3px;
 	text-decoration: none;
 }
-.week-picker ._popup ._arrow:hover {
+._week-picker ._popup ._arrow:hover {
 	background-color: #eee;
 	text-decoration: none;
 }
-.week-picker ._popup ._arrow:focus {
+._week-picker ._popup ._arrow:focus {
 	background-color: #eee;
 	text-decoration: none;
 }
-.week-picker ._popup ._yeardisp {
+._week-picker ._popup ._yeardisp {
 	display: inline-block;
 	margin: 0;
 	font-weight: 600;

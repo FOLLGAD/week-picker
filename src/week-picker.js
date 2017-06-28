@@ -13,26 +13,26 @@
 			init: function () {
 				var $this = $(this);
 				var headthis = this;
-				var mode = this.weekPicker.mode;
+				$this.empty();
 
-				this.weekPicker.mode = $this.data("mode") || "multi";
+				var mode = this.weekPicker.mode = $this.data("mode") || "multi";
 
 				var locale;
 				switch ($this.data("locale")) {
 					case "sv":
 						locale = {
-							OPEN_PICKER: "Välj veckor...",
+							OPEN_PICKER: mode == "single" ? "Välj vecka..." : "Välj veckor...",
 							CLEAR: "Rensa"
 						}
 						break;
 					default:
 						locale = {
-							OPEN_PICKER: "Open picker...",
+							OPEN_PICKER: mode == "single" ? "Choose a week..." : "Open picker...",
 							CLEAR: "Clear"
 						}
 				}
 
-				$this.append("<input placeholder='" + locale.OPEN_PICKER + "' /><div class='_middle'><div class='_popup' style='display:none'><div class='_oh'><a href='javascript:void(0)' class='_arrow _left'>&lt;</a><p class='_yeardisp' /><a href='javascript:void(0)' class='_arrow _right'>&gt;</a></div><table class='_weekTable' /><div class='_uh'><a class='_clear' href='javascript:void(0)'>" + locale.CLEAR + "</a></div></div></div>");
+				$this.append("<div class='_week-picker'><input placeholder='" + locale.OPEN_PICKER + "' /><div class='_middle'><div class='_popup' style='display:none'><div class='_oh'><a href='javascript:void(0)' class='_arrow _left'>&lt;</a><p class='_yeardisp' /><a href='javascript:void(0)' class='_arrow _right'>&gt;</a></div><table class='_weekTable' /><div class='_uh'><a class='_clear' href='javascript:void(0)'>" + locale.CLEAR + "</a></div></div></div></div>");
 				var popup = $this.find("._popup");
 
 				$this.weekPicker("changeYear", new Date().getFullYear());
@@ -118,6 +118,10 @@
 				$(document).on("click", function () {
 					popup.hide();
 				});
+			},
+			clear: function () {
+				this.weekPicker.chosen = [];
+				$(this).weekPicker("updateSelection");
 			},
 			value: function () {
 				return this.weekPicker.chosen;
