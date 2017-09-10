@@ -1,4 +1,30 @@
+
 (function () {
+	var getLocale = function (locale) {
+		var loc;
+		switch (locale) {
+			case "se":
+				loc = {
+					OPEN_PICKER_SINGLE: "Välj vecka...",
+					OPEN_PICKER: "Välj veckor...",
+					CLEAR: "Rensa",
+					NUM_SELECTED: "$num_selected veckor valda",
+					WEEK_SELECTED: "Vecka $weeknum, $year"
+				}
+				break;
+			case "en":
+			default:
+				loc = {
+					OPEN_PICKER_SINGLE: "Choose a week...",
+					OPEN_PICKER: "Open picker...",
+					CLEAR: "Clear",
+					NUM_SELECTED: "$num_selected weeks selected",
+					WEEK_SELECTED: "Week $weeknum, $year"
+				}
+		}
+		return loc;
+	}
+
 	if (!window.moment) throw new Error("moment.js not found; required");
 	if (!window.jQuery) throw new Error("jQuery not found; required");
 
@@ -17,22 +43,9 @@
 
 				var mode = this.weekPicker.mode = $this.data("mode") || "multi";
 
-				var locale;
-				switch ($this.data("locale")) {
-					case "sv":
-						locale = {
-							OPEN_PICKER: mode == "single" ? "Välj vecka..." : "Välj veckor...",
-							CLEAR: "Rensa"
-						}
-						break;
-					default:
-						locale = {
-							OPEN_PICKER: mode == "single" ? "Choose a week..." : "Open picker...",
-							CLEAR: "Clear"
-						}
-				}
+				var locale = getLocale($this.data("locale"));
 
-				$this.append("<div class='_week-picker'><input placeholder='" + locale.OPEN_PICKER + "' /><div class='_middle'><div class='_popup' style='display:none'><div class='_oh'><a href='javascript:void(0)' class='_arrow _left'>&lt;</a><p class='_yeardisp' /><a href='javascript:void(0)' class='_arrow _right'>&gt;</a></div><table class='_weekTable' /><div class='_uh'><a class='_clear' href='javascript:void(0)'>" + locale.CLEAR + "</a></div></div></div></div>");
+				$this.append("<div class='_week-picker'><input placeholder='" + (mode == "single" ? locale.OPEN_PICKER_SINGLE : locale.OPEN_PICKER) + "' /><div class='_middle'><div class='_popup' style='display:none'><div class='_oh'><a href='javascript:void(0)' class='_arrow _left'>&lt;</a><p class='_yeardisp' /><a href='javascript:void(0)' class='_arrow _right'>&gt;</a></div><table class='_weekTable' /><div class='_uh'><a class='_clear' href='javascript:void(0)'>" + locale.CLEAR + "</a></div></div></div></div>");
 				var popup = $this.find("._popup");
 
 				$this.weekPicker("changeYear", new Date().getFullYear());
@@ -111,12 +124,14 @@
 					$this.weekPicker("changeYear", yr + (r ? 1 : -1))
 				});
 				$this.children().children().on("click focus", function (e) {
-					e.stopPropagation();
 					popup.show();
 				});
 
-				$(document).on("click", function () {
-					popup.hide();
+				$(document).on("click", function (e) {
+					var children = $this.children().children();
+					if (children.find(e.target).length === 0 && !children.is(e.target)) {
+						popup.hide();
+					}
 				});
 			},
 			clear: function () {
@@ -148,6 +163,7 @@
 				} else {
 					this.weekPicker.chosen.push(date);
 				}
+				$(this).weekPicker("updateInputVal");
 			},
 			updateSelection: function () {
 				var $this = $(this);
@@ -171,6 +187,7 @@
 					var today = year == new Date().getFullYear() && i == moment().isoWeek();
 					row.append("<td class='" + (occupied ? "_active " : "") + (today ? "_current" : "") + "' data-week='" + i + "'><a href='javascript:void(0)'>" + i + "</a></td>");
 				}
+				$this.weekPicker("updateInputVal");
 			},
 			changeYear: function (year) {
 				if (!year) throw new Error("need year");
@@ -179,6 +196,24 @@
 				var $this = $(this);
 				$this.data("year", year);
 				$this.weekPicker("updateSelection");
+			},
+			updateInputVal: function () {
+				var $this = $(this);
+
+				var locale = getLocale($this.data("locale"));
+
+				var input = $this.find("input");
+
+				if (this.weekPicker.chosen.length !== 0) {
+					if (this.weekPicker.mode == "single") {
+						var date = moment(this.weekPicker.chosen[0]);
+						input.val(locale.WEEK_SELECTED.replace("$weeknum", date.isoWeek()).replace("$year", date.year()));
+					} else {
+						input.val(locale.NUM_SELECTED.replace("$num_selected", this.weekPicker.chosen.length));
+					}
+				} else {
+					input.val("")
+				}
 			}
 		}
 
@@ -196,6 +231,8 @@
 		return ret;
 	}
 	$(document).ready(function () {
-		$(".week-picker").weekPicker("init");
+		$(".week-picker").each(function () {
+			$(this).weekPicker("init");
+		})
 	});
 })();

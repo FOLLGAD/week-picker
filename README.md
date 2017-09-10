@@ -5,16 +5,16 @@
 
 ## Initialize a picker
 ``` html
-<div class="week-picker" />
+<div class="week-picker"></div>
 ```
 All elements with `class="week-picker"` are automatically initialized.
 `$(elem).weekPicker("init")` for manual init.
 ``` html
-<div class="week-picker" data-locale="sv" />
+<div class="week-picker" data-locale="se"></div>
 ```
-Localization is supported for `sv` and `en`. Defaults to `en`.
+Localization is supported for `se` and `en`. Defaults to `en`.
 ``` html
-<div class="week-picker" data-mode="single" />
+<div class="week-picker" data-mode="single"></div>
 ```
 The possible modes are `multi` and `single`. Defaults to `multi`.
 
