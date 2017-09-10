@@ -110,7 +110,7 @@
 					var yr = Number($this.data("year"));
 					$this.weekPicker("changeYear", yr + (r ? 1 : -1))
 				});
-				$this.children().on("click focus", function (e) {
+				$this.children().children().on("click focus", function (e) {
 					e.stopPropagation();
 					popup.show();
 				});
@@ -169,7 +169,7 @@
 					}
 					var occupied = this.weekPicker.chosen.indexOf(moment().year(year).isoWeek(i).startOf("isoWeek").format("YYYY-MM-DD")) !== -1;
 					var today = year == new Date().getFullYear() && i == moment().isoWeek();
-					row.append("<td class='" + (occupied ? "_active " : "") + (today ? "_current" : "") + "' data-week='" + i + "'><a>" + i + "</a></td>");
+					row.append("<td class='" + (occupied ? "_active " : "") + (today ? "_current" : "") + "' data-week='" + i + "'><a href='javascript:void(0)'>" + i + "</a></td>");
 				}
 			},
 			changeYear: function (year) {

@@ -1,5 +1,6 @@
 ._week-picker * {
 	box-sizing: border-box;
+	text-decoration: none;
 }
 ._week-picker > ._middle > ._popup {
 	position: absolute;
@@ -94,15 +95,12 @@
 	margin: 0 10px;
 	padding: 0 6px;
 	border-radius: 3px;
-	text-decoration: none;
 }
 ._week-picker ._popup ._arrow:hover {
 	background-color: #eee;
-	text-decoration: none;
 }
 ._week-picker ._popup ._arrow:focus {
 	background-color: #eee;
-	text-decoration: none;
 }
 ._week-picker ._popup ._yeardisp {
 	display: inline-block;
