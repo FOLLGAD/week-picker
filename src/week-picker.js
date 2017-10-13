@@ -1,7 +1,7 @@
 (function () {
 	if (!window.moment) throw new Error("moment.js not found; please place it in the global scope.");
 	if (!window.jQuery && !window.$) throw new Error("jQuery not found; please place it in the global scope.");
-	
+
 	var getLocale = function (locale) {
 		var loc;
 		switch (locale) {
@@ -26,6 +26,10 @@
 				}
 		}
 		return loc;
+	}
+
+	var getDate = function (week, year) {
+		return moment().year(year).isoWeek(week).format("YYYY-MM-DD");
 	}
 
 	var $ = window.jQuery || window.$;
@@ -88,18 +92,18 @@
 					$divs.on("mouseup", "td", function () {
 						holding = false;
 						if (!rangeStart) return;
-						
+
 						var wk = $(this).data("week");
 						var yr = $this.data("year");
-						
+
 						var first = rangeStart;
 						var stop = moment().year(yr).isoWeek(wk).startOf("isoWeek");
-						
+
 						var rangeIsGoingForward = stop.isAfter(first);
-						
+
 						var from = rangeIsGoingForward ? first : stop;
 						var to = rangeIsGoingForward ? stop : first;
-						
+
 						$this.weekPicker("setRange", from, to, rangeIsAdding);
 					})
 
@@ -115,7 +119,7 @@
 						if (holding) {
 							var touchLocation = e.originalEvent.changedTouches[0];
 							var elem = $(document.elementFromPoint(touchLocation.clientX, touchLocation.clientY));
-	
+
 							var wk = elem.data("week");
 							var yr = $this.data("year");
 							rangeEnd = moment().year(yr).isoWeek(wk).startOf("isoWeek");
@@ -131,15 +135,15 @@
 
 						var wk = elem.data("week");
 						var yr = $this.data("year");
-						
+
 						var first = rangeStart;
 						var stop = moment().year(yr).isoWeek(wk).startOf("isoWeek");
-						
+
 						var rangeIsGoingForward = stop.isAfter(first);
-						
+
 						var from = rangeIsGoingForward ? first : stop;
 						var to = rangeIsGoingForward ? stop : first;
-						
+
 						$this.weekPicker("setRange", from, to, rangeIsAdding);
 					})
 				} else {
@@ -149,7 +153,13 @@
 						$this.find("._active").removeClass("_active");
 						if (!isActive) $td.addClass("_active");
 
-						$this.weekPicker("toggleWeek", $td.data("week"), $this.data("year"));
+						var week = $td.data("week");
+						var year = $this.data("year");
+
+						$this.weekPicker("toggleWeek", week, year);
+
+						var event = new CustomEvent("change", { detail: { range: [getDate(week, year)], mode: !isActive ? "select" : "deselect" } });
+						headthis.dispatchEvent(event);
 					});
 				}
 
@@ -190,13 +200,27 @@
 					this.weekPicker.chosen.push(date);
 				}
 			},
+			removeDate: function (date) {
+				var ind = this.weekPicker.chosen.indexOf(date);
+				if (ind !== -1) {
+					this.weekPicker.chosen.splice(ind, 1);
+				}
+			},
 			setRange: function (dateBegin, dateEnd, setActive) {
 				var $this = $(this);
+				var dates = [];
 
 				while (dateBegin <= dateEnd) {
-					$this.weekPicker(setActive ? "addDate" : "removeDate", dateBegin.format("YYYY-MM-DD"));
+					dates.push(dateBegin.format("YYYY-MM-DD"));
 					dateBegin.add(1, "week");
 				}
+
+				dates.forEach(function (date) {
+					$this.weekPicker(setActive ? "addDate" : "removeDate", date);
+				})
+
+				var event = new CustomEvent("change", { detail: { range: dates, mode: setActive ? "select" : "deselect" } });
+				this.dispatchEvent(event);
 
 				$this.weekPicker("updateSelection");
 			},
@@ -213,12 +237,6 @@
 				slicedWeeks.each(function () {
 					$(this).addClass(setActive ? "_rangeAdd" : "_rangeDel");
 				})
-			},
-			removeDate: function (date) {
-				var ind = this.weekPicker.chosen.indexOf(date);
-				if (ind !== -1) {
-					this.weekPicker.chosen.splice(ind, 1);
-				}
 			},
 			toggleWeek: function (week, year) {
 				var date = moment().year(year).isoWeek(week).startOf("isoWeek").format("YYYY-MM-DD");
