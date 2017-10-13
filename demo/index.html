@@ -1,17 +1,99 @@
 <html>
 
-	<head>
-		<meta charset="UTF-8">
-		<title>Weekpicker</title>
-		<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-		<script src="http://momentjs.com/downloads/moment.min.js"></script>
-		<script src="../src/week-picker.js"></script>
-		<link rel="stylesheet" href="../dist/week-picker.css">
-	</head>
+<head>
+	<meta charset="UTF-8">
+	<title>Weekpicker</title>
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script src="http://momentjs.com/downloads/moment.min.js"></script>
+	<script src="../src/week-picker.js"></script>
+	<link rel="stylesheet" href="../src/css/week-picker.css">
+	<style>
+		.settings {
+			display: inline-block;
+			background-color: #eee;
+			width: 300px;
+			margin-top: 20px;
+			padding: 10px;
+		}
+		.settings div {
+			display: inline-block;
+			width: 100%;
+		}
+		body {
+			font-family: sans-serif;
+		}
+		ul {
+			list-style-type: none;
+			margin-left: -30px;
+			line-height: 30px;
+		}
+		.list {
+			padding: 10px;
+			margin-top: 30px;
+			width: 300px;
+			background-color: #eee;
+		}
+	</style>
+</head>
 
-	<body>
-		<div class="week-picker" data-locale="se"></div>
-		<div class="week-picker" data-mode="single"></div>
-	</body>
+<body>
+	<div id="wem" class="week-picker" data-mode="multi"></div>
+	<div id="wes" class="week-picker" data-mode="single"></div>
+	<div id="wsm" class="week-picker" data-mode="multi" data-locale="se"></div>
+	<div id="wss" class="week-picker" data-mode="single" data-locale="se"></div>
+
+	<div class="settings">
+		<div>
+			<button onclick="switchMode()">Change mode</button>
+			<span>
+				Mode: <span id="mode">Multi</span>
+			</span>
+		</div>
+		<div>
+			<button onclick="switchLocale()">Change locale</button>
+			<span>
+				Locale: <span id="locale">Se</span>
+			</span>
+		</div>
+	</div>
+	<div class="list">
+		<button onclick="getValue()">Print values</button>
+		<ul id="values">
+	
+		</ul>
+	</div>
+	<script>
+		window.mode = "multi";
+		window.locale = "en";
+
+		function getElem() {
+			return $("#w" + (window.locale == "en" ? "e" : "s") + (window.mode == "multi" ? "m" : "s"));
+		}
+
+		function update() {
+			$(".week-picker").hide();
+			getElem().show();
+			$("#mode").text(window.mode.charAt(0).toUpperCase() + window.mode.slice(1));
+			$("#locale").text(window.locale.charAt(0).toUpperCase() + window.locale.slice(1));
+		}
+		update();
+		function switchLocale() {
+			window.locale = window.locale == "se" ? "en" : "se";
+			update();
+		}
+		function switchMode() {
+			window.mode = window.mode == "single" ? "multi" : "single";
+			update();
+		}
+		function getValue() {
+			var vals = getElem().weekPicker("value");
+			var $values = $("#values");
+			$values.empty();
+			vals.forEach(function (date) {
+				$values.append("<li>" + date + " (week " + moment(date).isoWeek() + ")" + "</li>");
+			})
+		}
+	</script>
+</body>
 
 </html>
