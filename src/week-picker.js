@@ -1,8 +1,11 @@
-
 (function () {
+	if (!window.moment) throw new Error("moment.js not found; please place it in the global scope.");
+	if (!window.jQuery && !window.$) throw new Error("jQuery not found; please place it in the global scope.");
+	
 	var getLocale = function (locale) {
 		var loc;
 		switch (locale) {
+			case "sv":
 			case "se":
 				loc = {
 					OPEN_PICKER_SINGLE: "Välj vecka...",
@@ -25,26 +28,25 @@
 		return loc;
 	}
 
-	if (!window.moment) throw new Error("moment.js not found; required");
-	if (!window.jQuery) throw new Error("jQuery not found; required");
-
-	var $ = window.jQuery;
+	var $ = window.jQuery || window.$;
 	var moment = window.moment;
 
 	$.fn.weekPicker = function (method) {
 		var ret = this;
 		var args = arguments;
 
+		// Methods to be accessed by: $( ... ).weekPicker(methodName)
 		var methods = {
 			init: function () {
-				var $this = $(this);
 				var headthis = this;
+				var $this = $(this);
 				$this.empty();
 
 				var mode = this.weekPicker.mode = $this.data("mode") || "multi";
 
 				var locale = getLocale($this.data("locale"));
 
+				// TODO: Fix html to multiple rows for readability
 				$this.append("<div class='_week-picker'><input placeholder='" + (mode == "single" ? locale.OPEN_PICKER_SINGLE : locale.OPEN_PICKER) + "' /><div class='_middle'><div class='_popup' style='display:none'><div class='_oh'><a href='javascript:void(0)' class='_arrow _left'>&lt;</a><p class='_yeardisp' /><a href='javascript:void(0)' class='_arrow _right'>&gt;</a></div><table class='_weekTable' /><div class='_uh'><a class='_clear' href='javascript:void(0)'>" + locale.CLEAR + "</a></div></div></div></div>");
 				var popup = $this.find("._popup");
 
@@ -54,64 +56,100 @@
 					e.target.value = "";
 				});
 
-				$this.children("div").on("click", "td", function () {
-					if (mode == "single") {
-						var isActive = $(this).hasClass("_active");
-						$this.find("._active").toggleClass("_active");
-						if (!isActive) $(this).toggleClass("_active");
-					} else {
-						$(this).toggleClass("_active");
-					}
-					$this.weekPicker("toggleWeek", $(this).data("week"), $this.data("year"));
-				});
-
 				$this.find("._clear").on("click", function () {
 					headthis.weekPicker.chosen = [];
 					$this.weekPicker("updateSelection");
 				})
+
 				if (this.weekPicker.mode != "single") {
-					$this.children("div").on("mousedown touchstart", "td", function () {
+					var $divs = $this.children("div");
+
+					var rangeStart;
+					var rangeEnd;
+					var rangeIsAdding;
+					var holding = false;
+
+					// Mouse events
+					$divs.on("mousedown", "td", function () {
+						holding = true;
 						var wk = $(this).data("week");
 						var yr = $this.data("year");
-						headthis.weekPicker.rangestart = moment().year(yr).isoWeek(wk).startOf("isoWeek");
-						headthis.weekPicker.rangestartActive = $(this).hasClass("_active");
-					});
-					$this.children("div").on("mouseup touchend", "td", function () {
-						if (!headthis.weekPicker.rangestart) return;
-
-						var wk = $(this).data("week");
-						var yr = $this.data("year");
-						var stop = moment().year(yr).isoWeek(wk).startOf("isoWeek");
-
-						var current;
-						if (headthis.weekPicker.rangestartActive) {
-							current = headthis.weekPicker.rangestart;
-							if (current < stop) {
-								while (current <= stop) {
-									$this.weekPicker("removeDate", current.format("YYYY-MM-DD"));
-									current.add(1, "week");
-								}
-							} else {
-								while (stop <= current) {
-									$this.weekPicker("removeDate", stop.format("YYYY-MM-DD"));
-									stop.add(1, "week");
-								}
-							}
-						} else {
-							current = headthis.weekPicker.rangestart;
-							if (current < stop) {
-								while (current <= stop) {
-									$this.weekPicker("addDate", current.format("YYYY-MM-DD"));
-									current.add(1, "week");
-								}
-							} else {
-								while (stop <= current) {
-									$this.weekPicker("addDate", stop.format("YYYY-MM-DD"));
-									stop.add(1, "week");
-								}
-							}
+						rangeStart = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+						rangeIsAdding = !$(this).hasClass("_active");
+					})
+					$divs.on("mousemove", "td", function () {
+						if (holding) {
+							var wk = $(this).data("week");
+							var yr = $this.data("year");
+							rangeEnd = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+							$this.weekPicker("setSelectedRange", rangeStart, rangeEnd, rangeIsAdding);
 						}
-						$this.weekPicker("updateSelection");
+					})
+					$divs.on("mouseup", "td", function () {
+						holding = false;
+						if (!rangeStart) return;
+						
+						var wk = $(this).data("week");
+						var yr = $this.data("year");
+						
+						var first = rangeStart;
+						var stop = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+						
+						var rangeIsGoingForward = stop.isAfter(first);
+						
+						var from = rangeIsGoingForward ? first : stop;
+						var to = rangeIsGoingForward ? stop : first;
+						
+						$this.weekPicker("setRange", from, to, rangeIsAdding);
+					})
+
+					// Touch events
+					$divs.on("touchstart", "td", function () {
+						holding = true;
+						var wk = $(this).data("week");
+						var yr = $this.data("year");
+						rangeStart = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+						rangeIsAdding = !$(this).hasClass("_active");
+					})
+					$divs.on("touchmove", "td", function (e) {
+						if (holding) {
+							var touchLocation = e.originalEvent.changedTouches[0];
+							var elem = $(document.elementFromPoint(touchLocation.clientX, touchLocation.clientY));
+	
+							var wk = elem.data("week");
+							var yr = $this.data("year");
+							rangeEnd = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+							$this.weekPicker("setSelectedRange", rangeStart, rangeEnd, rangeIsAdding);
+						}
+					})
+					$divs.on("touchend", "td", function (e) {
+						holding = false;
+						if (!rangeStart) return;
+
+						var touchLocation = e.originalEvent.changedTouches[0];
+						var elem = $(document.elementFromPoint(touchLocation.clientX, touchLocation.clientY));
+
+						var wk = elem.data("week");
+						var yr = $this.data("year");
+						
+						var first = rangeStart;
+						var stop = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+						
+						var rangeIsGoingForward = stop.isAfter(first);
+						
+						var from = rangeIsGoingForward ? first : stop;
+						var to = rangeIsGoingForward ? stop : first;
+						
+						$this.weekPicker("setRange", from, to, rangeIsAdding);
+					})
+				} else {
+					$this.children("div").on("click", "td", function () {
+						var $td = $(this);
+						var isActive = $td.hasClass("_active");
+						$this.find("._active").removeClass("_active");
+						if (!isActive) $td.addClass("_active");
+
+						$this.weekPicker("toggleWeek", $td.data("week"), $this.data("year"));
 					});
 				}
 
@@ -123,7 +161,7 @@
 					var yr = Number($this.data("year"));
 					$this.weekPicker("changeYear", yr + (r ? 1 : -1))
 				});
-				$this.children().children().on("click focus", function (e) {
+				$this.children().children().on("click focus", function () {
 					popup.show();
 				});
 
@@ -133,6 +171,11 @@
 						popup.hide();
 					}
 				});
+				$this.on("keypress", function (e) {
+					if (e.code == "Enter") {
+						e.target
+					}
+				})
 			},
 			clear: function () {
 				this.weekPicker.chosen = [];
@@ -146,6 +189,30 @@
 				if (ind === -1) {
 					this.weekPicker.chosen.push(date);
 				}
+			},
+			setRange: function (dateBegin, dateEnd, setActive) {
+				var $this = $(this);
+
+				while (dateBegin <= dateEnd) {
+					$this.weekPicker(setActive ? "addDate" : "removeDate", dateBegin.format("YYYY-MM-DD"));
+					dateBegin.add(1, "week");
+				}
+
+				$this.weekPicker("updateSelection");
+			},
+			setSelectedRange: function (from, to, setActive) {
+				var fromWeek = from.isoWeek();
+				var toWeek = to.isoWeek();
+
+				var first = Math.min(fromWeek, toWeek);
+				var last = Math.max(fromWeek, toWeek);
+
+				var weeks = $(this).find("._weekTable td");
+				weeks.removeClass("_rangeAdd _rangeDel");
+				var slicedWeeks = weeks.slice(first - 1, last);
+				slicedWeeks.each(function () {
+					$(this).addClass(setActive ? "_rangeAdd" : "_rangeDel");
+				})
 			},
 			removeDate: function (date) {
 				var ind = this.weekPicker.chosen.indexOf(date);
@@ -185,7 +252,7 @@
 					}
 					var occupied = this.weekPicker.chosen.indexOf(moment().year(year).isoWeek(i).startOf("isoWeek").format("YYYY-MM-DD")) !== -1;
 					var today = year == new Date().getFullYear() && i == moment().isoWeek();
-					row.append("<td class='" + (occupied ? "_active " : "") + (today ? "_current" : "") + "' data-week='" + i + "'><a href='javascript:void(0)'>" + i + "</a></td>");
+					row.append("<td class='" + (occupied ? "_active " : "") + (today ? "_current" : "") + "' data-week='" + i + "'>" + i + "</td>");
 				}
 				$this.weekPicker("updateInputVal");
 			},
@@ -212,7 +279,7 @@
 						input.val(locale.NUM_SELECTED.replace("$num_selected", this.weekPicker.chosen.length));
 					}
 				} else {
-					input.val("")
+					input.val("");
 				}
 			}
 		}
@@ -225,6 +292,8 @@
 				}
 			}
 			if (methods[method]) {
+				// Apply arguiments to the function specified
+				// For example: '$( ... ).weekPicker("method", value)' becomes 'method(value)'
 				ret = methods[method].apply(this, Array.prototype.slice.call(args, 1))
 			}
 		})
