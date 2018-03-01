@@ -1,6 +1,6 @@
 # week-picker
 
-> Week-picker is an *ISO-8601* compliant picker for easily selecting weeks.
+> Week-picker is an *ISO-8601* picker for easily selecting weeks.
 
 # Requirements
 
