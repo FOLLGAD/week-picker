@@ -43,7 +43,7 @@ $(elem).weekPicker("clear")
 
 ## Events
 
-When the picker is changed, a "change" event is dispatched. `event.details` contains data about the change, like the range selected and the mode (`select` or `deselect`).
+When the picker is changed, a "change" event is dispatched. `event.detail` contains the selected range as ISO-week Mondays and the mode (`select` or `deselect`).
 
 ``` js
 // Multi-mode example (default)
@@ -60,3 +60,10 @@ $(".week-picker").on("change", function (event) {
 ## Demo
 
 [Here](https://follgad.github.io/week-picker)
+
+## ISO-week regression tests
+
+```sh
+npm install --no-save --package-lock=false --ignore-scripts jquery@3.7.1 moment@2.30.1 jsdom@26.1.0
+node --test test/iso-week.cjs
+```
