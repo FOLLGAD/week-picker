@@ -28,8 +28,9 @@
 		return loc;
 	}
 
-	var getDate = function (week, year) {
-		return moment().year(year).isoWeek(week).format("YYYY-MM-DD");
+	var getWeekStart = function (week, year) {
+		// January 4 is always in ISO week 1 of the requested year.
+		return moment([year, 0, 4]).isoWeek(week).startOf("isoWeek");
 	}
 
 	var $ = window.jQuery || window.$;
@@ -54,7 +55,7 @@
 				$this.append("<div class='_week-picker'><input readonly placeholder='" + (mode == "single" ? locale.OPEN_PICKER_SINGLE : locale.OPEN_PICKER) + "' /><div class='_middle'><div class='_popup' style='display:none'><div class='_oh'><a href='javascript:void(0)' class='_arrow _left'>&lt;</a><p class='_yeardisp' /><a href='javascript:void(0)' class='_arrow _right'>&gt;</a></div><table class='_weekTable' /><div class='_uh'><a class='_clear' href='javascript:void(0)'>" + locale.CLEAR + "</a></div></div></div></div>");
 				var popup = $this.find("._popup");
 
-				$this.weekPicker("changeYear", new Date().getFullYear());
+				$this.weekPicker("changeYear", moment().isoWeekYear());
 
 				$this.find("input").on("change input", function (e) {
 					e.target.value = "";
@@ -78,14 +79,14 @@
 						holding = true;
 						var wk = $(this).data("week");
 						var yr = $this.data("year");
-						rangeStart = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+						rangeStart = getWeekStart(wk, yr);
 						rangeIsAdding = !$(this).hasClass("_active");
 					})
 					$divs.on("mousemove", "td", function () {
 						if (holding) {
 							var wk = $(this).data("week");
 							var yr = $this.data("year");
-							rangeEnd = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+							rangeEnd = getWeekStart(wk, yr);
 							$this.weekPicker("setSelectedRange", rangeStart, rangeEnd, rangeIsAdding);
 						}
 					})
@@ -97,7 +98,7 @@
 						var yr = $this.data("year");
 
 						var first = rangeStart;
-						var stop = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+						var stop = getWeekStart(wk, yr);
 
 						var rangeIsGoingForward = stop.isAfter(first);
 
@@ -112,7 +113,7 @@
 						holding = true;
 						var wk = $(this).data("week");
 						var yr = $this.data("year");
-						rangeStart = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+						rangeStart = getWeekStart(wk, yr);
 						rangeIsAdding = !$(this).hasClass("_active");
 					})
 					$divs.on("touchmove", "td", function (e) {
@@ -122,7 +123,7 @@
 
 							var wk = elem.data("week");
 							var yr = $this.data("year");
-							rangeEnd = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+							rangeEnd = getWeekStart(wk, yr);
 							$this.weekPicker("setSelectedRange", rangeStart, rangeEnd, rangeIsAdding);
 						}
 					})
@@ -137,7 +138,7 @@
 						var yr = $this.data("year");
 
 						var first = rangeStart;
-						var stop = moment().year(yr).isoWeek(wk).startOf("isoWeek");
+						var stop = getWeekStart(wk, yr);
 
 						var rangeIsGoingForward = stop.isAfter(first);
 
@@ -158,7 +159,7 @@
 
 						$this.weekPicker("toggleWeek", week, year);
 
-						var event = new CustomEvent("change", { detail: { range: [getDate(week, year)], mode: !isActive ? "select" : "deselect" } });
+						var event = new CustomEvent("change", { detail: { range: [getWeekStart(week, year).format("YYYY-MM-DD")], mode: !isActive ? "select" : "deselect" } });
 						headthis.dispatchEvent(event);
 					});
 				}
@@ -239,7 +240,7 @@
 				})
 			},
 			toggleWeek: function (week, year) {
-				var date = moment().year(year).isoWeek(week).startOf("isoWeek").format("YYYY-MM-DD");
+				var date = getWeekStart(week, year).format("YYYY-MM-DD");
 				var ind = this.weekPicker.chosen.indexOf(date);
 				if (ind !== -1) {
 					this.weekPicker.chosen.splice(ind, 1);
@@ -258,7 +259,8 @@
 
 				var year = $this.data("year");
 
-				var totalWeeks = moment().year(year).isoWeeksInYear();
+				var totalWeeks = moment([year, 0, 4]).isoWeeksInYear();
+				var now = moment();
 
 				$this.find("._yeardisp").text(year);
 
@@ -268,8 +270,8 @@
 						table.append("<tr />");
 						row = table.find("tr").last();
 					}
-					var occupied = this.weekPicker.chosen.indexOf(moment().year(year).isoWeek(i).startOf("isoWeek").format("YYYY-MM-DD")) !== -1;
-					var today = year == new Date().getFullYear() && i == moment().isoWeek();
+					var occupied = this.weekPicker.chosen.indexOf(getWeekStart(i, year).format("YYYY-MM-DD")) !== -1;
+					var today = year == now.isoWeekYear() && i == now.isoWeek();
 					row.append("<td class='" + (occupied ? "_active " : "") + (today ? "_current" : "") + "' data-week='" + i + "'>" + i + "</td>");
 				}
 				$this.weekPicker("updateInputVal");
@@ -292,7 +294,7 @@
 				if (this.weekPicker.chosen.length !== 0) {
 					if (this.weekPicker.mode == "single") {
 						var date = moment(this.weekPicker.chosen[0]);
-						input.val(locale.WEEK_SELECTED.replace("$weeknum", date.isoWeek()).replace("$year", date.year()));
+						input.val(locale.WEEK_SELECTED.replace("$weeknum", date.isoWeek()).replace("$year", date.isoWeekYear()));
 					} else {
 						input.val(locale.NUM_SELECTED.replace("$num_selected", this.weekPicker.chosen.length));
 					}
